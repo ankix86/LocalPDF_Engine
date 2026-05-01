@@ -231,15 +231,6 @@ Built with love using:
 
 ---
 
-## 💬 Support & Community
-
-- 📧 **Email:** support@localpdfengine.com
-- 🐛 **Issues:** [GitHub Issues](https://github.com/yourusername/localpdf-engine/issues)
-- 💡 **Discussions:** [GitHub Discussions](https://github.com/yourusername/localpdf-engine/discussions)
-- 🌟 **Star us on GitHub!**
-
----
-
 ## 🔐 Privacy Policy
 
 Your data is your own. LocalPDF Engine operates with complete transparency:
