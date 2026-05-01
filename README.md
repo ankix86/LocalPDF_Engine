@@ -2,6 +2,8 @@
 
 > A powerful, privacy-first browser-based PDF toolkit. **100% client-side processing** - your PDFs never leave your device.
 
+[**Live Beta (v1.0.0-beta.1)**](https://localpdf-engine.vercel.app/)
+
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-18.3-61dafb?style=flat-square&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
