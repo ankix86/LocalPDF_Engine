@@ -1,0 +1,86 @@
+name: Feature request
+description: Suggest a new tool or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! Please fill this out so contributors can implement it quickly.
+
+        Before opening an issue, please skim `CONTRIBUTING.md`.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / user need
+      description: What problem does this solve? Who is it for?
+      placeholder: "I need to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the solution at a high level.
+      placeholder: "Add a tool that..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: flow
+    attributes:
+      label: User flow
+      description: Step-by-step flow.
+      placeholder: |
+        1) User uploads PDF
+        2) User does X
+        3) User downloads result
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Tool category
+      options:
+        - organize
+        - convert
+        - edit
+        - security
+        - other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: requirements
+    attributes:
+      label: Requirements (must-have)
+      options:
+        - label: Runs fully client-side (no uploads)
+          required: true
+        - label: Works on desktop and mobile/touch
+          required: true
+        - label: Clear loading/progress states + clear error states
+          required: true
+        - label: Output can be downloaded (PDF/ZIP/etc.)
+          required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist of what "done" means.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical notes (optional)
+      description: Suggested approach, files, or libraries.
+
