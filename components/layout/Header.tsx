@@ -23,7 +23,7 @@ export default function Header() {
             All Tools
           </Link>
           <a
-            href="https://github.com"
+            href="https://github.com/ankix86/LocalPDF_Engine"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors"
