@@ -46,14 +46,9 @@ Before you begin, ensure you have:
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/localpdf-engine.git
+   git clone https://github.com/ankix86/localpdf-engine.git
    cd localpdf-engine
    ```
-3. Add upstream remote:
-   ```bash
-   git remote add upstream https://github.com/ORIGINAL_OWNER/localpdf-engine.git
-   ```
-
 ---
 
 ## 🔧 Development Setup
