@@ -205,7 +205,7 @@ localpdf-engine/
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTE.md](CONTRIBUTE.md) for detailed guidelines on:
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
 - Setting up your development environment
 - Code standards and conventions
 - Pull request process
