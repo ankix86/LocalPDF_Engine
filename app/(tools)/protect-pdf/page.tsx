@@ -39,7 +39,7 @@ export default function ProtectPDFPage() {
   return (
     <ToolLayout
       title="Protect PDF"
-      description="Lock your PDF with a password so only authorized users can open it."
+      description="Lock your PDF with a password. Uses 128-bit AES for broad support in Chrome, Edge, and Adobe Reader."
       icon="lock"
       iconClass="bg-red-50 text-red-600"
     >

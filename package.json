@@ -9,25 +9,27 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.29",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "3.11.174",
-    "react-dropzone": "^14.3.5",
+    "@pdfsmaller/pdf-encrypt-lite": "^1.0.2",
     "docx": "^8.5.0",
     "jszip": "^3.10.1",
+    "modern-pdf-lib": "^0.26.0",
+    "next": "14.2.29",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "3.11.174",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.5",
     "tesseract.js": "^5.1.1"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "tailwindcss": "^3.4.17",
-    "postcss": "^8",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "14.2.29"
+    "eslint-config-next": "14.2.29",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5"
   }
 }

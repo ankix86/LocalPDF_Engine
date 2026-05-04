@@ -1,36 +1,46 @@
 import { PDFDocument } from "pdf-lib";
+import { encryptPDF as encryptPdfBytes } from "@pdfsmaller/pdf-encrypt-lite";
+import { loadPdf } from "modern-pdf-lib";
 
 /**
- * Encrypt a PDF with a user password.
- * NOTE: pdf-lib v1 does not support AES-256 encryption; it uses RC4-128.
- * For stronger encryption, a server-side solution or WASM-based lib would be needed.
- * However, for most use cases this is sufficient.
+ * Encrypt a PDF with a user password (and optional distinct owner password).
+ *
+ * Uses pdf-lib to produce a clean traditional-xref PDF (preserves all
+ * content faithfully), then applies RC4-128 encryption via pdf-encrypt-lite.
+ * RC4-128 is universally supported by every PDF reader.
  */
 export async function protectPDF(
   arrayBuffer: ArrayBuffer,
   userPassword: string,
   ownerPassword?: string
 ): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
-  // pdf-lib save with encryption options
-  return doc.save({
-    // @ts-ignore - pdf-lib types don't fully expose encryption options but the runtime supports them
-    userPassword,
-    ownerPassword: ownerPassword ?? userPassword,
-  });
+  if (!userPassword) {
+    throw new Error("A password is required.");
+  }
+
+  const pdfLibDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+  if (pdfLibDoc.getPageCount() === 0) {
+    throw new Error("PDF has no pages.");
+  }
+  const cleanBytes = await pdfLibDoc.save({ useObjectStreams: false });
+
+  return encryptPdfBytes(cleanBytes, userPassword, ownerPassword ?? userPassword);
 }
 
 /**
  * Remove password protection from a PDF (requires the current password).
+ * Loads the encrypted PDF with modern-pdf-lib (decryption-on-load), then
+ * re-saves through pdf-lib to guarantee a clean unprotected output.
  */
 export async function unlockPDF(
   arrayBuffer: ArrayBuffer,
   password: string
 ): Promise<Uint8Array> {
-  // pdf-lib accepts a `password` load option at runtime, but the TS types omit it.
-  const doc = await PDFDocument.load(arrayBuffer, {
-    ignoreEncryption: false,
-    password,
-  } as Parameters<typeof PDFDocument.load>[1]);
-  return doc.save();
+  const decrypted = await loadPdf(arrayBuffer, { password });
+  if (decrypted.getPageCount() === 0) {
+    throw new Error("PDF has no pages.");
+  }
+  const rawBytes = await decrypted.save({ addDefaultPage: false });
+  const clean = await PDFDocument.load(rawBytes, { ignoreEncryption: true });
+  return clean.save();
 }
