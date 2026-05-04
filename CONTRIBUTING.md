@@ -140,7 +140,7 @@ localpdf-engine/
 ├── DESIGN.md                         # Design system documentation
 ├── CLAUDE.md                         # Architecture overview
 ├── README.md                         # Project README
-├── CONTRIBUTE.md                     # This file
+├── CONTRIBUTING.md                     # This file
 ├── next.config.mjs                   # Next.js configuration
 ├── tailwind.config.ts                # Tailwind CSS config
 ├── tsconfig.json                     # TypeScript config
