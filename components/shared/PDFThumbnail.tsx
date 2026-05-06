@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { renderAllPageThumbnails } from "@/lib/pdf/core";
 import { cn } from "@/lib/utils";
+import { isTouchDevice } from "@/lib/touch-utils";
 
 interface PDFThumbnailsProps {
   file: File | null;
@@ -13,6 +14,8 @@ interface PDFThumbnailsProps {
   className?: string;
   /** Called when thumbnails finish loading */
   onLoaded?: (count: number) => void;
+  /** Enable horizontal scroll on mobile (default: false) */
+  mobileHorizontalScroll?: boolean;
 }
 
 export default function PDFThumbnails({
@@ -23,10 +26,12 @@ export default function PDFThumbnails({
   columns = 4,
   className,
   onLoaded,
+  mobileHorizontalScroll = false,
 }: PDFThumbnailsProps) {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTouch] = useState(() => isTouchDevice());
 
   useEffect(() => {
     if (!file) {
@@ -80,6 +85,54 @@ export default function PDFThumbnails({
     6: "grid-cols-3 sm:grid-cols-4 md:grid-cols-6",
   }[columns] ?? "grid-cols-4";
 
+  // Mobile horizontal scroll mode
+  if (mobileHorizontalScroll && isTouch) {
+    return (
+      <div className={cn("overflow-x-auto touch-scroll pb-2 -mx-2 px-2", className)}>
+        <div className="flex gap-3" style={{ minWidth: "min-content" }}>
+          {thumbnails.map((src, i) => {
+            const selected = selectedPages?.has(i) ?? false;
+            return (
+              <div
+                key={i}
+                onClick={() => onTogglePage?.(i)}
+                className={cn(
+                  "group relative rounded border-2 overflow-hidden transition-all shrink-0",
+                  onTogglePage ? "cursor-pointer active:scale-95" : "",
+                  selected
+                    ? "border-teal-500 shadow-md ring-2 ring-teal-200"
+                    : "border-slate-200"
+                )}
+                style={{ width: "120px" }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`Page ${i + 1}`}
+                  className="w-full h-auto block"
+                  style={{ aspectRatio: "1 / 1.414", objectFit: "cover" }}
+                />
+                {selected && (
+                  <div className="absolute inset-0 bg-teal-500/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-teal-600 icon-filled text-[32px]">
+                      check_circle
+                    </span>
+                  </div>
+                )}
+                {showLabels && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent py-1.5 px-2">
+                    <span className="text-white text-xs font-semibold">{i + 1}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Standard grid layout
   return (
     <div className={cn(`grid gap-3 ${gridCols}`, className)}>
       {thumbnails.map((src, i) => {
@@ -90,9 +143,9 @@ export default function PDFThumbnails({
             onClick={() => onTogglePage?.(i)}
             className={cn(
               "group relative rounded border-2 overflow-hidden transition-all",
-              onTogglePage ? "cursor-pointer" : "",
+              onTogglePage ? "cursor-pointer active:scale-95" : "",
               selected
-                ? "border-teal-500 shadow-md"
+                ? "border-teal-500 shadow-md ring-2 ring-teal-200"
                 : "border-slate-200 hover:border-slate-400"
             )}
           >

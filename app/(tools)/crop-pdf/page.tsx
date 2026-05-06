@@ -4,9 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ToolLayout, { DownloadSuccess, PrimaryButton, SecondaryButton, ToolCard } from "@/components/shared/ToolLayout";
 import FileDropzone from "@/components/shared/FileDropzone";
 import PDFThumbnails from "@/components/shared/PDFThumbnail";
+import TouchHint from "@/components/shared/TouchHint";
+import PageJumpInput from "@/components/shared/PageJumpInput";
 import { renderPageToCanvas } from "@/lib/pdf/core";
 import { cropPdfPages, type CropRectFrac } from "@/lib/pdf/crop";
 import { downloadBlob, getBaseName, pdfBytes } from "@/lib/utils";
+import { preventScrollDuringTouch, isTouchDevice } from "@/lib/touch-utils";
 
 type DragMode =
   | { kind: "move"; start: { x: number; y: number }; startRect: CropRectFrac }
@@ -26,6 +29,9 @@ const HANDLE_CURSOR: Record<ResizeHandle, string> = {
   sw: "nesw-resize",
   se: "nwse-resize",
 };
+
+// Touch-optimized handle size (44x44px minimum)
+const HANDLE_SIZE = 44;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
@@ -68,13 +74,16 @@ function isFullPageCrop(rect: CropRectFrac | null | undefined) {
 }
 
 function getHandleStyle(handle: ResizeHandle): React.CSSProperties {
-  const middleOffset = "calc(50% - 12px)";
+  const halfSize = HANDLE_SIZE / 2;
+  const middleOffset = `calc(50% - ${halfSize}px)`;
   return {
-    left: handle.includes("w") ? "-12px" : handle === "n" || handle === "s" ? middleOffset : undefined,
-    right: handle.includes("e") ? "-12px" : undefined,
-    top: handle.includes("n") ? "-12px" : handle === "e" || handle === "w" ? middleOffset : undefined,
-    bottom: handle.includes("s") ? "-12px" : undefined,
+    left: handle.includes("w") ? `-${halfSize}px` : handle === "n" || handle === "s" ? middleOffset : undefined,
+    right: handle.includes("e") ? `-${halfSize}px` : undefined,
+    top: handle.includes("n") ? `-${halfSize}px` : handle === "e" || handle === "w" ? middleOffset : undefined,
+    bottom: handle.includes("s") ? `-${halfSize}px` : undefined,
     cursor: HANDLE_CURSOR[handle],
+    width: `${HANDLE_SIZE}px`,
+    height: `${HANDLE_SIZE}px`,
   };
 }
 
@@ -94,6 +103,13 @@ export default function CropPDFPage() {
 
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [isTouch] = useState(() => isTouchDevice());
+
+  // Prevent scroll during touch interaction
+  useEffect(() => {
+    const cleanup = preventScrollDuringTouch(overlayRef.current);
+    return cleanup;
+  }, []);
 
   useEffect(() => {
     if (!file) {
@@ -326,13 +342,19 @@ export default function CropPDFPage() {
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-700">Crop preview</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Select a page first. The box starts around the whole page, then you can drag any side or corner.
-                    </p>
+                    <TouchHint
+                      text={isTouch ? "Drag corners or edges to resize crop area" : "Drag any side or corner to adjust"}
+                      icon="crop"
+                      className="mt-2"
+                    />
                   </div>
-                  <span className="text-xs font-medium text-slate-500 shrink-0">
-                    Page {Math.min(targetPage + 1, Math.max(pageCount, 1))}{pageCount > 0 ? ` / ${pageCount}` : ""}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <PageJumpInput
+                      currentPage={targetPage}
+                      totalPages={pageCount}
+                      onJump={goToPage}
+                    />
+                  </div>
                 </div>
 
                 <div className="relative">
@@ -343,7 +365,7 @@ export default function CropPDFPage() {
                   {/* Interaction overlay */}
                   <div
                     ref={overlayRef}
-                    className="absolute inset-0 touch-none select-none"
+                    className="absolute inset-0 touch-none select-none no-select"
                     onPointerDown={onPointerDown}
                     onPointerMove={onPointerMove}
                     onPointerUp={onPointerUp}
@@ -369,9 +391,17 @@ export default function CropPDFPage() {
                         <div
                           key={h}
                           data-handle={h}
-                          className="absolute h-6 w-6 rounded-sm border-2 border-white bg-teal-500 shadow-md touch-none"
+                          className="absolute rounded-md border-3 border-white bg-teal-500 shadow-lg touch-none flex items-center justify-center"
                           style={getHandleStyle(h)}
-                        />
+                        >
+                          <span className="material-symbols-outlined text-white text-[18px] pointer-events-none">
+                            {h.includes("n") && h.includes("w") ? "north_west" :
+                             h.includes("n") && h.includes("e") ? "north_east" :
+                             h.includes("s") && h.includes("w") ? "south_west" :
+                             h.includes("s") && h.includes("e") ? "south_east" :
+                             h === "n" || h === "s" ? "unfold_more" : "unfold_more_double"}
+                          </span>
+                        </div>
                       ))}
                     </div>
 
@@ -397,7 +427,8 @@ export default function CropPDFPage() {
                         aria-label="Previous page"
                         onClick={() => goToPage(targetPage - 1)}
                         disabled={targetPage === 0}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                        style={{ width: "44px", height: "44px" }}
                       >
                         <span className="material-symbols-outlined text-[24px]">chevron_left</span>
                       </button>
@@ -406,7 +437,8 @@ export default function CropPDFPage() {
                         aria-label="Next page"
                         onClick={() => goToPage(targetPage + 1)}
                         disabled={targetPage >= pageCount - 1}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                        style={{ width: "44px", height: "44px" }}
                       >
                         <span className="material-symbols-outlined text-[24px]">chevron_right</span>
                       </button>
@@ -449,6 +481,7 @@ export default function CropPDFPage() {
                   onTogglePage={goToPage}
                   onLoaded={onLoaded}
                   columns={6}
+                  mobileHorizontalScroll={true}
                 />
               </ToolCard>
 
