@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import ToolLayout, { ToolCard, PrimaryButton, DownloadSuccess } from "@/components/shared/ToolLayout";
 import FileDropzone from "@/components/shared/FileDropzone";
 import PDFThumbnails from "@/components/shared/PDFThumbnail";
+import TouchHint from "@/components/shared/TouchHint";
+import PageJumpInput from "@/components/shared/PageJumpInput";
 import { PDFDocument, degrees } from "pdf-lib";
 import { renderPageToCanvas } from "@/lib/pdf/core";
 import { downloadBlob, getBaseName } from "@/lib/utils";
+import { preventScrollDuringTouch, isTouchDevice } from "@/lib/touch-utils";
 
 type StampPlacement = {
   id: string;
@@ -34,6 +37,10 @@ type HandleState = {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+// Touch-optimized sizes
+const HANDLE_SIZE = 44; // 44x44px minimum touch target
+const ROTATE_HANDLE_SIZE = 44;
+
 export default function StampPDFPage() {
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
@@ -55,6 +62,13 @@ export default function StampPDFPage() {
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const stampUrlRef = useRef<string | null>(null);
+  const [isTouch] = useState(() => isTouchDevice());
+
+  // Prevent scroll during touch interaction
+  useEffect(() => {
+    const cleanup = preventScrollDuringTouch(wrapRef.current);
+    return cleanup;
+  }, []);
 
   useEffect(() => {
     if (!file) { setPreviewLoading(false); setPreviewError(null); return; }
@@ -271,11 +285,13 @@ export default function StampPDFPage() {
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <div>
                     <p className="text-sm font-semibold text-slate-700">Page preview</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {stampUrl
-                        ? "Tap to place · Drag to move · Drag corners to resize · Drag ↺ to rotate"
+                    <TouchHint
+                      text={stampUrl
+                        ? (isTouch ? "Tap to place · Drag to move · Pinch corners to resize" : "Click to place · Drag to move · Resize corners")
                         : "Upload a stamp image to start placing"}
-                    </p>
+                      icon="approval"
+                      className="mt-2"
+                    />
                   </div>
                   <div className="flex items-center gap-3">
                     {pagePlacements.length > 0 && (
@@ -283,9 +299,11 @@ export default function StampPDFPage() {
                         {pagePlacements.length} placed
                       </span>
                     )}
-                    <span className="text-xs font-medium text-slate-500">
-                      Page {Math.min(targetPage + 1, Math.max(pageCount, 1))}{pageCount > 0 ? ` / ${pageCount}` : ""}
-                    </span>
+                    <PageJumpInput
+                      currentPage={targetPage}
+                      totalPages={pageCount}
+                      onJump={goToPage}
+                    />
                   </div>
                 </div>
 
@@ -298,7 +316,7 @@ export default function StampPDFPage() {
                   {/* Interactive layer - same rect as canvas, overflow visible for handles */}
                   <div
                     ref={wrapRef}
-                    className={`absolute inset-0 touch-none ${cursorClass}`}
+                    className={`absolute inset-0 touch-none no-select ${cursorClass}`}
                     onMouseMove={(e) => { if (!handle) setHoverPt(getRelPt(e.clientX, e.clientY)); }}
                     onMouseLeave={() => { if (!handle) setHoverPt(null); }}
                     onClick={placeStamp}
@@ -325,12 +343,20 @@ export default function StampPDFPage() {
                               {/* Rotation handle - rendered inside the rotated div so it rotates with the stamp */}
                               {isSel && (
                                 <div
-                                  className="absolute -top-11 left-1/2 -translate-x-1/2 flex flex-col items-center z-30 cursor-grab active:cursor-grabbing touch-none"
+                                  className="absolute flex flex-col items-center z-30 cursor-grab active:cursor-grabbing touch-none"
+                                  style={{
+                                    top: `-${ROTATE_HANDLE_SIZE + 12}px`,
+                                    left: "50%",
+                                    transform: "translateX(-50%)",
+                                  }}
                                   onPointerDown={(e) => startRotate(e, p)}
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <div className="w-9 h-9 bg-white border-2 border-teal-500 rounded-full flex items-center justify-center shadow-md hover:bg-teal-50 transition-colors">
-                                    <span className="material-symbols-outlined text-[18px] text-teal-600 leading-none select-none">rotate_right</span>
+                                  <div
+                                    className="bg-white border-2 border-teal-500 rounded-full flex items-center justify-center shadow-md hover:bg-teal-50 transition-colors"
+                                    style={{ width: `${ROTATE_HANDLE_SIZE}px`, height: `${ROTATE_HANDLE_SIZE}px` }}
+                                  >
+                                    <span className="material-symbols-outlined text-[20px] text-teal-600 leading-none select-none">rotate_right</span>
                                   </div>
                                   <div className="w-px h-3 bg-teal-400" />
                                 </div>
@@ -348,25 +374,27 @@ export default function StampPDFPage() {
                                 {/* Delete button - always visible when selected, hover-only otherwise */}
                                 <button
                                   type="button"
-                                  className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 z-20 bg-white/90 border border-slate-200 text-slate-500 rounded-full flex items-center justify-center shadow hover:bg-red-500 hover:border-red-500 hover:text-white transition-all ${isSel ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                                  className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-white/90 border border-slate-200 text-slate-500 rounded-full flex items-center justify-center shadow hover:bg-red-500 hover:border-red-500 hover:text-white transition-all active:scale-95 ${isSel ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                                  style={{ width: `${HANDLE_SIZE}px`, height: `${HANDLE_SIZE}px` }}
                                   onPointerDown={(e) => e.stopPropagation()}
                                   onClick={(e) => { e.stopPropagation(); deletePlacement(p.id); }}
                                 >
-                                  <span className="material-symbols-outlined text-[18px] leading-none">delete</span>
+                                  <span className="material-symbols-outlined text-[20px] leading-none">delete</span>
                                 </button>
 
                                 {/* Corner resize handles - enlarged for touch */}
                                 {isSel && (
                                   <>
                                     {[
-                                      "absolute -top-2.5 -left-2.5 cursor-nw-resize",
-                                      "absolute -top-2.5 -right-2.5 cursor-ne-resize",
-                                      "absolute -bottom-2.5 -left-2.5 cursor-sw-resize",
-                                      "absolute -bottom-2.5 -right-2.5 cursor-se-resize",
-                                    ].map((cls, i) => (
+                                      { pos: "absolute cursor-nw-resize", style: { top: `-${HANDLE_SIZE/2}px`, left: `-${HANDLE_SIZE/2}px` } },
+                                      { pos: "absolute cursor-ne-resize", style: { top: `-${HANDLE_SIZE/2}px`, right: `-${HANDLE_SIZE/2}px` } },
+                                      { pos: "absolute cursor-sw-resize", style: { bottom: `-${HANDLE_SIZE/2}px`, left: `-${HANDLE_SIZE/2}px` } },
+                                      { pos: "absolute cursor-se-resize", style: { bottom: `-${HANDLE_SIZE/2}px`, right: `-${HANDLE_SIZE/2}px` } },
+                                    ].map((cfg, i) => (
                                       <div
                                         key={i}
-                                        className={`${cls} w-5 h-5 bg-white border-2 border-teal-500 rounded-sm shadow-sm z-20 touch-none`}
+                                        className={`${cfg.pos} bg-white border-2 border-teal-500 rounded-sm shadow-sm z-20 touch-none`}
+                                        style={{ ...cfg.style, width: `${HANDLE_SIZE}px`, height: `${HANDLE_SIZE}px` }}
                                         onPointerDown={(e) => startResize(e, p)}
                                         onClick={(e) => e.stopPropagation()}
                                       />
@@ -418,11 +446,13 @@ export default function StampPDFPage() {
                   {pageCount > 1 && (
                     <>
                       <button type="button" aria-label="Previous page" onClick={() => goToPage(targetPage - 1)} disabled={targetPage === 0}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                        style={{ width: "44px", height: "44px" }}>
                         <span className="material-symbols-outlined text-[24px]">chevron_left</span>
                       </button>
                       <button type="button" aria-label="Next page" onClick={() => goToPage(targetPage + 1)} disabled={targetPage >= pageCount - 1}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-md transition hover:bg-white hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                        style={{ width: "44px", height: "44px" }}>
                         <span className="material-symbols-outlined text-[24px]">chevron_right</span>
                       </button>
                     </>
@@ -439,6 +469,7 @@ export default function StampPDFPage() {
                   onTogglePage={(index) => setTargetPage(index)}
                   onLoaded={setPageCount}
                   columns={6}
+                  mobileHorizontalScroll={true}
                 />
               </ToolCard>
 
