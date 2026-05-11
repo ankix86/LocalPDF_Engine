@@ -5,8 +5,10 @@ import ToolLayout, { ToolCard, PrimaryButton, DownloadSuccess } from "@/componen
 import FileDropzone from "@/components/shared/FileDropzone";
 import { unlockPDF } from "@/lib/pdf/protect";
 import { downloadBlob, getBaseName } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 export default function UnlockPDFPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -27,8 +29,8 @@ export default function UnlockPDFPage() {
       const msg = (err as Error)?.message ?? "";
       setError(
         msg.toLowerCase().includes("password") || msg.toLowerCase().includes("decrypt")
-          ? "Wrong password. Please try again."
-          : "Failed to unlock PDF. Ensure it is password-protected and you have the correct password."
+          ? t("unlock.wrongPassword")
+          : t("unlock.error")
       );
     } finally {
       setProcessing(false);
@@ -39,8 +41,8 @@ export default function UnlockPDFPage() {
 
   return (
     <ToolLayout
-      title="Unlock PDF"
-      description="Remove password protection from a PDF you own."
+      title={t("tools.unlockPdf.title")}
+      description={t("unlock.pageDescription")}
       icon="lock_open"
       iconClass="bg-red-50 text-red-600"
     >
@@ -65,16 +67,16 @@ export default function UnlockPDFPage() {
             <ToolCard>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-1.5">Current password</label>
+                  <label className="text-sm font-semibold text-slate-700 block mb-1.5">{t("unlock.currentPassword")}</label>
                   <p className="text-xs text-slate-500 mb-2">
-                    Leave blank if the PDF has no user password but is owner-restricted.
+                    {t("unlock.hint")}
                   </p>
                   <div className="relative">
                     <input
                       type={show ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter PDF password (or leave blank)"
+                      placeholder={t("unlock.placeholder")}
                       className="w-full border border-slate-300 rounded px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                     />
                     <button
@@ -93,7 +95,7 @@ export default function UnlockPDFPage() {
 
                 <PrimaryButton onClick={handleUnlock} loading={processing}>
                   <span className="material-symbols-outlined text-[18px]">lock_open</span>
-                  Remove Protection
+                  {t("unlock.button")}
                 </PrimaryButton>
               </div>
             </ToolCard>

@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { useDropzone, type Accept } from "react-dropzone";
 import { cn, formatBytes } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface FileDropzoneProps {
   onFiles: (files: File[]) => void;
@@ -19,10 +20,11 @@ export default function FileDropzone({
   accept = { "application/pdf": [".pdf"] },
   maxFiles = 1,
   files = [],
-  label = "Drop your PDF here",
+  label,
   sublabel,
   className,
 }: FileDropzoneProps) {
+  const { t } = useTranslation();
   const onDrop = useCallback(
     (accepted: File[]) => {
       if (accepted.length > 0) onFiles(accepted);
@@ -38,6 +40,7 @@ export default function FileDropzone({
   });
 
   const hasFiles = files.length > 0;
+  const resolvedLabel = label ?? t("common.dropPdfHere");
 
   return (
     <div
@@ -67,9 +70,11 @@ export default function FileDropzone({
             </span>
           </div>
           <div className="text-center px-4">
-            <p className="font-semibold text-slate-700">{label}</p>
+            <p className="font-semibold text-slate-700">{resolvedLabel}</p>
             <p className="text-sm text-slate-500 mt-1">
-              {sublabel ?? `or click to select${maxFiles > 1 ? ` (up to ${maxFiles} files)` : ""}`}
+              {sublabel ?? (maxFiles > 1
+                ? t("common.orClickToSelectMultiple", { max: maxFiles })
+                : t("common.orClickToSelect"))}
             </p>
           </div>
           <div className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
@@ -88,7 +93,7 @@ export default function FileDropzone({
             </div>
           ))}
           <p className="text-xs text-slate-400 pt-1 text-center">
-            Click or drop to replace
+            {t("common.clickOrDropToReplace")}
           </p>
         </div>
       )}

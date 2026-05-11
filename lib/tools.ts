@@ -1,7 +1,7 @@
 export interface Tool {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: string;
   href: string;
   category: ToolCategory;
@@ -14,8 +14,8 @@ export const TOOLS: Tool[] = [
   // Organize
   {
     id: "merge-pdf",
-    title: "Merge PDF",
-    description: "Combine multiple PDFs into one file.",
+    titleKey: "tools.mergePdf.title",
+    descriptionKey: "tools.mergePdf.description",
     icon: "merge",
     href: "/merge-pdf",
     category: "organize",
@@ -23,8 +23,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "split-pdf",
-    title: "Split PDF",
-    description: "Divide a PDF into separate files by page range.",
+    titleKey: "tools.splitPdf.title",
+    descriptionKey: "tools.splitPdf.description",
     icon: "cut",
     href: "/split-pdf",
     category: "organize",
@@ -32,8 +32,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "organize-pdf",
-    title: "Reorder / Delete Pages",
-    description: "Drag pages to reorder or click × to delete them.",
+    titleKey: "tools.organizePdf.title",
+    descriptionKey: "tools.organizePdf.description",
     icon: "grid_view",
     href: "/organize-pdf",
     category: "organize",
@@ -41,8 +41,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "add-page-numbers",
-    title: "Add Page Numbers",
-    description: "Stamp page numbers on every page of your PDF.",
+    titleKey: "tools.addPageNumbers.title",
+    descriptionKey: "tools.addPageNumbers.description",
     icon: "format_list_numbered",
     href: "/add-page-numbers",
     category: "organize",
@@ -51,8 +51,8 @@ export const TOOLS: Tool[] = [
   // Convert
   {
     id: "pdf-to-jpg",
-    title: "PDF to JPG",
-    description: "Export each page as a high-quality JPEG image.",
+    titleKey: "tools.pdfToJpg.title",
+    descriptionKey: "tools.pdfToJpg.description",
     icon: "image",
     href: "/pdf-to-jpg",
     category: "convert",
@@ -60,8 +60,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "jpg-to-pdf",
-    title: "JPG to PDF",
-    description: "Pack one or more images into a single PDF.",
+    titleKey: "tools.jpgToPdf.title",
+    descriptionKey: "tools.jpgToPdf.description",
     icon: "add_photo_alternate",
     href: "/jpg-to-pdf",
     category: "convert",
@@ -69,8 +69,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "pdf-to-word",
-    title: "PDF to Word",
-    description: "Extract text from a PDF and save as a .docx file.",
+    titleKey: "tools.pdfToWord.title",
+    descriptionKey: "tools.pdfToWord.description",
     icon: "description",
     href: "/pdf-to-word",
     category: "convert",
@@ -79,8 +79,8 @@ export const TOOLS: Tool[] = [
   // Edit
   {
     id: "compress-pdf",
-    title: "Compress PDF",
-    description: "Reduce file size while keeping acceptable quality.",
+    titleKey: "tools.compressPdf.title",
+    descriptionKey: "tools.compressPdf.description",
     icon: "compress",
     href: "/compress-pdf",
     category: "edit",
@@ -88,8 +88,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "rotate-pdf",
-    title: "Rotate PDF",
-    description: "Rotate pages 90°, 180° or 270° in any PDF.",
+    titleKey: "tools.rotatePdf.title",
+    descriptionKey: "tools.rotatePdf.description",
     icon: "rotate_right",
     href: "/rotate-pdf",
     category: "edit",
@@ -97,8 +97,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "watermark-pdf",
-    title: "Watermark PDF",
-    description: "Stamp custom text across all pages.",
+    titleKey: "tools.watermarkPdf.title",
+    descriptionKey: "tools.watermarkPdf.description",
     icon: "water",
     href: "/watermark-pdf",
     category: "edit",
@@ -106,8 +106,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "sign-pdf",
-    title: "Sign PDF",
-    description: "Draw or type your signature and embed it.",
+    titleKey: "tools.signPdf.title",
+    descriptionKey: "tools.signPdf.description",
     icon: "draw",
     href: "/sign-pdf",
     category: "edit",
@@ -115,8 +115,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "highlight-pdf",
-    title: "Draw / Highlight PDF",
-    description: "Draw freehand strokes or highlight any area on your PDF.",
+    titleKey: "tools.highlightPdf.title",
+    descriptionKey: "tools.highlightPdf.description",
     icon: "draw",
     href: "/highlight-pdf",
     category: "edit",
@@ -124,8 +124,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "stamp-pdf",
-    title: "Stamp PDF",
-    description: "Upload an image stamp and place it on any page.",
+    titleKey: "tools.stampPdf.title",
+    descriptionKey: "tools.stampPdf.description",
     icon: "approval",
     href: "/stamp-pdf",
     category: "edit",
@@ -133,8 +133,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "crop-pdf",
-    title: "Crop PDF",
-    description: "Crop pages individually with a smooth touch-friendly crop box.",
+    titleKey: "tools.cropPdf.title",
+    descriptionKey: "tools.cropPdf.description",
     icon: "crop",
     href: "/crop-pdf",
     category: "edit",
@@ -142,8 +142,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "ocr-pdf",
-    title: "OCR PDF",
-    description: "Extract text from scanned PDFs using OCR.",
+    titleKey: "tools.ocrPdf.title",
+    descriptionKey: "tools.ocrPdf.description",
     icon: "document_scanner",
     href: "/ocr-pdf",
     category: "edit",
@@ -152,8 +152,8 @@ export const TOOLS: Tool[] = [
   // Security
   {
     id: "protect-pdf",
-    title: "Protect PDF",
-    description: "Lock your PDF with a password.",
+    titleKey: "tools.protectPdf.title",
+    descriptionKey: "tools.protectPdf.description",
     icon: "lock",
     href: "/protect-pdf",
     category: "security",
@@ -161,8 +161,8 @@ export const TOOLS: Tool[] = [
   },
   {
     id: "unlock-pdf",
-    title: "Unlock PDF",
-    description: "Remove password protection from a PDF.",
+    titleKey: "tools.unlockPdf.title",
+    descriptionKey: "tools.unlockPdf.description",
     icon: "lock_open",
     href: "/unlock-pdf",
     category: "security",
@@ -170,10 +170,13 @@ export const TOOLS: Tool[] = [
   },
 ];
 
-export const CATEGORIES: { id: ToolCategory | "all"; label: string }[] = [
-  { id: "all", label: "All Tools" },
-  { id: "organize", label: "Organize" },
-  { id: "convert", label: "Convert" },
-  { id: "edit", label: "Edit" },
-  { id: "security", label: "Security" },
+export const CATEGORY_KEYS: { id: ToolCategory | "all"; labelKey: string }[] = [
+  { id: "all", labelKey: "categories.all" },
+  { id: "organize", labelKey: "categories.organize" },
+  { id: "convert", labelKey: "categories.convert" },
+  { id: "edit", labelKey: "categories.edit" },
+  { id: "security", labelKey: "categories.security" },
 ];
+
+// Keep backward-compatible export name
+export const CATEGORIES = CATEGORY_KEYS;

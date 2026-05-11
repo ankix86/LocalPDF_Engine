@@ -6,17 +6,20 @@ import FileDropzone from "@/components/shared/FileDropzone";
 import { addPageNumbers, type PageNumberPosition } from "@/lib/pdf/pagenumbers";
 import { downloadBlob, getBaseName } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-
-const POSITIONS: { id: PageNumberPosition; label: string }[] = [
-  { id: "bottom-left", label: "Bottom left" },
-  { id: "bottom-center", label: "Bottom center" },
-  { id: "bottom-right", label: "Bottom right" },
-  { id: "top-left", label: "Top left" },
-  { id: "top-center", label: "Top center" },
-  { id: "top-right", label: "Top right" },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export default function AddPageNumbersPage() {
+  const { t } = useTranslation();
+
+  const POSITIONS: { id: PageNumberPosition; labelKey: string }[] = [
+    { id: "bottom-left", labelKey: "pageNumbers.bottomLeft" },
+    { id: "bottom-center", labelKey: "pageNumbers.bottomCenter" },
+    { id: "bottom-right", labelKey: "pageNumbers.bottomRight" },
+    { id: "top-left", labelKey: "pageNumbers.topLeft" },
+    { id: "top-center", labelKey: "pageNumbers.topCenter" },
+    { id: "top-right", labelKey: "pageNumbers.topRight" },
+  ];
+
   const [file, setFile] = useState<File | null>(null);
   const [position, setPosition] = useState<PageNumberPosition>("bottom-center");
   const [startAt, setStartAt] = useState(1);
@@ -36,7 +39,7 @@ export default function AddPageNumbersPage() {
       const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
       setResult({ blob, filename: `${getBaseName(file.name)}-numbered.pdf` });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Failed.");
+      setError((err as Error)?.message ?? t("common.failed"));
     } finally {
       setProcessing(false);
     }
@@ -46,8 +49,8 @@ export default function AddPageNumbersPage() {
 
   return (
     <ToolLayout
-      title="Add Page Numbers"
-      description="Stamp page numbers on every page of your PDF."
+      title={t("tools.addPageNumbers.title")}
+      description={t("pageNumbers.pageDescription")}
       icon="format_list_numbered"
       iconClass="bg-blue-50 text-blue-600"
     >
@@ -72,9 +75,9 @@ export default function AddPageNumbersPage() {
             <ToolCard>
               <div className="space-y-5">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-2">Position</label>
+                  <label className="text-sm font-semibold text-slate-700 block mb-2">{t("pageNumbers.position")}</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {POSITIONS.map(({ id, label }) => (
+                    {POSITIONS.map(({ id, labelKey }) => (
                       <button
                         key={id}
                         onClick={() => setPosition(id)}
@@ -85,7 +88,7 @@ export default function AddPageNumbersPage() {
                             : "border-slate-200 text-slate-600 hover:border-slate-400"
                         )}
                       >
-                        {label}
+                        {t(labelKey)}
                       </button>
                     ))}
                   </div>
@@ -94,24 +97,23 @@ export default function AddPageNumbersPage() {
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1.5">
-                      Format
+                      {t("pageNumbers.format")}
                     </label>
                     <input
                       type="text"
                       value={format}
                       onChange={(e) => setFormat(e.target.value)}
-                      placeholder="{n} or Page {n} of {total}"
+                      placeholder={t("pageNumbers.formatPlaceholder")}
                       className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                     />
                     <p className="text-xs text-slate-400 mt-1">
-                      Use <code className="bg-slate-100 px-0.5 rounded">{"{n}"}</code> for page number,{" "}
-                      <code className="bg-slate-100 px-0.5 rounded">{"{total}"}</code> for total pages
+                      {t("pageNumbers.formatHint")}
                     </p>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1.5">
-                      Start at
+                      {t("pageNumbers.startAt")}
                     </label>
                     <input
                       type="number"
@@ -124,7 +126,7 @@ export default function AddPageNumbersPage() {
 
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1.5">
-                      Font size: {fontSize}pt
+                      {t("pageNumbers.fontSize", { value: fontSize })}
                     </label>
                     <input
                       type="range" min={8} max={24} value={fontSize}
@@ -138,7 +140,7 @@ export default function AddPageNumbersPage() {
 
                 <PrimaryButton onClick={handleAdd} loading={processing}>
                   <span className="material-symbols-outlined text-[18px]">format_list_numbered</span>
-                  Add Page Numbers
+                  {t("pageNumbers.button")}
                 </PrimaryButton>
               </div>
             </ToolCard>

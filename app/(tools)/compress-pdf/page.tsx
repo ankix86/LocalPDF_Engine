@@ -6,14 +6,17 @@ import FileDropzone from "@/components/shared/FileDropzone";
 import { compressPDF, type CompressionLevel } from "@/lib/pdf/compress";
 import { downloadBlob, formatBytes, getBaseName } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-
-const LEVELS: { id: CompressionLevel; label: string; desc: string }[] = [
-  { id: "low", label: "Low", desc: "Smallest reduction, best quality" },
-  { id: "medium", label: "Medium", desc: "Good balance (recommended)" },
-  { id: "high", label: "High", desc: "Maximum reduction, lower quality" },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export default function CompressPDFPage() {
+  const { t } = useTranslation();
+
+  const LEVELS: { id: CompressionLevel; labelKey: string; descKey: string }[] = [
+    { id: "low", labelKey: "compress.low", descKey: "compress.lowDesc" },
+    { id: "medium", labelKey: "compress.medium", descKey: "compress.mediumDesc" },
+    { id: "high", labelKey: "compress.high", descKey: "compress.highDesc" },
+  ];
+
   const [file, setFile] = useState<File | null>(null);
   const [level, setLevel] = useState<CompressionLevel>("medium");
   const [processing, setProcessing] = useState(false);
@@ -31,12 +34,12 @@ export default function CompressPDFPage() {
       const buffer = await file.arrayBuffer();
       const bytes = await compressPDF(buffer, level, (page, total) => {
         setProgress(Math.round((page / total) * 100));
-        setProgressLabel(`Compressing page ${page} of ${total}…`);
+        setProgressLabel(t("compress.progress", { page, total }));
       });
       const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
       setResult({ blob, filename: `${getBaseName(file.name)}-compressed.pdf` });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Compression failed.");
+      setError((err as Error)?.message ?? t("compress.error"));
     } finally {
       setProcessing(false);
     }
@@ -51,8 +54,8 @@ export default function CompressPDFPage() {
 
   return (
     <ToolLayout
-      title="Compress PDF"
-      description="Reduce file size by re-encoding pages at lower image quality."
+      title={t("tools.compressPdf.title")}
+      description={t("compress.pageDescription")}
       icon="compress"
       iconClass="bg-teal-50 text-teal-600"
     >
@@ -66,8 +69,11 @@ export default function CompressPDFPage() {
           />
           {file && (
             <p className="text-center text-xs text-slate-500 mt-2">
-              {formatBytes(file.size)} → {formatBytes(result.blob.size)}{" "}
-              ({Math.round((1 - result.blob.size / file.size) * 100)}% smaller)
+              {t("compress.result", {
+                from: formatBytes(file.size),
+                to: formatBytes(result.blob.size),
+                percent: Math.round((1 - result.blob.size / file.size) * 100),
+              })}
             </p>
           )}
         </ToolCard>
@@ -83,9 +89,9 @@ export default function CompressPDFPage() {
           {file && (
             <>
               <ToolCard>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Compression level</p>
+                <p className="text-sm font-semibold text-slate-700 mb-3">{t("compress.level")}</p>
                 <div className="grid sm:grid-cols-3 gap-3">
-                  {LEVELS.map(({ id, label, desc }) => (
+                  {LEVELS.map(({ id, labelKey, descKey }) => (
                     <button
                       key={id}
                       onClick={() => setLevel(id)}
@@ -97,16 +103,15 @@ export default function CompressPDFPage() {
                       )}
                     >
                       <p className={cn("font-semibold text-sm", level === id ? "text-teal-700" : "text-slate-800")}>
-                        {label}
+                        {t(labelKey)}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{t(descKey)}</p>
                     </button>
                   ))}
                 </div>
 
                 <div className="mt-5 p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
-                  <span className="font-semibold">Note:</span> Compression rasterizes pages to JPEG.
-                  Text will no longer be selectable. Best suited for print-ready or image-heavy PDFs.
+                  <span className="font-semibold">{t("compress.noteLabel")}</span> {t("compress.note")}
                 </div>
               </ToolCard>
 
@@ -122,7 +127,7 @@ export default function CompressPDFPage() {
 
               <PrimaryButton onClick={handleCompress} loading={processing}>
                 <span className="material-symbols-outlined text-[18px]">compress</span>
-                Compress PDF
+                {t("compress.button")}
               </PrimaryButton>
             </>
           )}

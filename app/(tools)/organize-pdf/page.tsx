@@ -7,6 +7,7 @@ import { renderAllPageThumbnails } from "@/lib/pdf/core";
 import { reorganizePages } from "@/lib/pdf/organize";
 import { downloadBlob, getBaseName } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface PageItem {
   originalIndex: number;
@@ -15,6 +16,7 @@ interface PageItem {
 }
 
 export default function OrganizePDFPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,12 +55,12 @@ export default function OrganizePDFPage() {
     try {
       const buffer = await file.arrayBuffer();
       const order = pages.filter((p) => !p.deleted).map((p) => p.originalIndex);
-      if (order.length === 0) { setError("At least one page must remain."); return; }
+      if (order.length === 0) { setError(t("organize.atLeastOne")); return; }
       const bytes = await reorganizePages(buffer, order);
       const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
       setResult({ blob, filename: `${getBaseName(file.name)}-organized.pdf` });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Failed.");
+      setError((err as Error)?.message ?? t("common.failed"));
     } finally {
       setProcessing(false);
     }
@@ -71,8 +73,8 @@ export default function OrganizePDFPage() {
 
   return (
     <ToolLayout
-      title="Reorder / Delete Pages"
-      description="Drag pages to reorder, or click × to delete them."
+      title={t("tools.organizePdf.title")}
+      description={t("organize.pageDescription")}
       icon="grid_view"
       iconClass="bg-blue-50 text-blue-600"
     >
@@ -96,16 +98,16 @@ export default function OrganizePDFPage() {
           {loading && (
             <div className="flex items-center gap-2 text-slate-500 py-4">
               <span className="material-symbols-outlined animate-spin text-teal-500">progress_activity</span>
-              <span className="text-sm">Loading pages…</span>
+              <span className="text-sm">{t("common.loadingPages")}</span>
             </div>
           )}
 
           {pages.length > 0 && (
             <ToolCard>
               <p className="text-sm font-semibold text-slate-700 mb-1">
-                {active.length} page{active.length !== 1 ? "s" : ""} - drag to reorder, click × to remove
+                {t("organize.pageCount", { count: active.length })}
               </p>
-              <p className="text-xs text-slate-500 mb-4">Click a deleted page to restore it.</p>
+              <p className="text-xs text-slate-500 mb-4">{t("organize.clickToRestore")}</p>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {pages.map((page, i) => (
@@ -161,7 +163,7 @@ export default function OrganizePDFPage() {
 
               {deleted.length > 0 && (
                 <p className="mt-3 text-xs text-slate-400">
-                  {deleted.length} page{deleted.length !== 1 ? "s" : ""} marked for removal. Click to restore.
+                  {t("organize.deletedCount", { count: deleted.length })}
                 </p>
               )}
 
@@ -170,13 +172,13 @@ export default function OrganizePDFPage() {
               <div className="mt-5 flex gap-3">
                 <PrimaryButton onClick={handleApply} loading={processing}>
                   <span className="material-symbols-outlined text-[18px]">save</span>
-                  Apply &amp; Download
+                  {t("organize.button")}
                 </PrimaryButton>
                 <button
                   onClick={() => setPages(pages.map((p) => ({ ...p, deleted: false })))}
                   className="text-sm text-slate-500 hover:text-slate-800 transition-colors"
                 >
-                  Restore all
+                  {t("organize.restoreAll")}
                 </button>
               </div>
             </ToolCard>

@@ -7,14 +7,17 @@ import PDFThumbnails from "@/components/shared/PDFThumbnail";
 import { rotatePDF, type RotationAngle } from "@/lib/pdf/rotate";
 import { downloadBlob, getBaseName } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-
-const ANGLES: { angle: RotationAngle; icon: string; label: string }[] = [
-  { angle: 90, icon: "rotate_right", label: "90° CW" },
-  { angle: 180, icon: "sync", label: "180°" },
-  { angle: 270, icon: "rotate_left", label: "90° CCW" },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export default function RotatePDFPage() {
+  const { t } = useTranslation();
+
+  const ANGLES: { angle: RotationAngle; icon: string; labelKey: string }[] = [
+    { angle: 90, icon: "rotate_right", labelKey: "rotate.cw90" },
+    { angle: 180, icon: "sync", labelKey: "rotate.180" },
+    { angle: 270, icon: "rotate_left", labelKey: "rotate.ccw90" },
+  ];
+
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [angle, setAngle] = useState<RotationAngle>(90);
@@ -45,7 +48,7 @@ export default function RotatePDFPage() {
       const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
       setResult({ blob, filename: `${getBaseName(file.name)}-rotated.pdf` });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Rotation failed.");
+      setError((err as Error)?.message ?? t("rotate.error"));
     } finally {
       setProcessing(false);
     }
@@ -55,8 +58,8 @@ export default function RotatePDFPage() {
 
   return (
     <ToolLayout
-      title="Rotate PDF"
-      description="Rotate all pages or specific pages by 90°, 180° or 270°."
+      title={t("tools.rotatePdf.title")}
+      description={t("rotate.pageDescription")}
       icon="rotate_right"
       iconClass="bg-teal-50 text-teal-600"
     >
@@ -80,9 +83,9 @@ export default function RotatePDFPage() {
           {file && (
             <>
               <ToolCard>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Rotation</p>
+                <p className="text-sm font-semibold text-slate-700 mb-3">{t("rotate.rotation")}</p>
                 <div className="flex gap-3 flex-wrap">
-                  {ANGLES.map(({ angle: a, icon, label }) => (
+                  {ANGLES.map(({ angle: a, icon, labelKey }) => (
                     <button
                       key={a}
                       onClick={() => setAngle(a)}
@@ -94,24 +97,24 @@ export default function RotatePDFPage() {
                       )}
                     >
                       <span className="material-symbols-outlined text-[18px]">{icon}</span>
-                      {label}
+                      {t(labelKey)}
                     </button>
                   ))}
                 </div>
 
                 <div className="mt-4 flex gap-3">
-                  {["all", "selected"].map((t) => (
+                  {(["all", "selected"] as const).map((tgt) => (
                     <button
-                      key={t}
-                      onClick={() => setTarget(t as "all" | "selected")}
+                      key={tgt}
+                      onClick={() => setTarget(tgt)}
                       className={cn(
                         "px-4 py-1.5 rounded-full text-sm font-medium border transition-all",
-                        target === t
+                        target === tgt
                           ? "bg-teal-600 text-white border-teal-600"
                           : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
                       )}
                     >
-                      {t === "all" ? "All pages" : "Selected pages"}
+                      {tgt === "all" ? t("rotate.allPages") : t("rotate.selectedPages")}
                     </button>
                   ))}
                 </div>
@@ -120,7 +123,7 @@ export default function RotatePDFPage() {
               {target === "selected" && (
                 <ToolCard>
                   <p className="text-sm font-semibold text-slate-700 mb-3">
-                    Select pages to rotate ({selectedPages.size} selected)
+                    {t("rotate.selectPages", { count: selectedPages.size })}
                   </p>
                   <PDFThumbnails
                     file={file}
@@ -148,7 +151,7 @@ export default function RotatePDFPage() {
                 disabled={target === "selected" && selectedPages.size === 0}
               >
                 <span className="material-symbols-outlined text-[18px]">rotate_right</span>
-                Rotate PDF
+                {t("rotate.button")}
               </PrimaryButton>
             </>
           )}

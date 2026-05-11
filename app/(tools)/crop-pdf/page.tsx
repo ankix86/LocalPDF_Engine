@@ -10,6 +10,7 @@ import { renderPageToCanvas } from "@/lib/pdf/core";
 import { cropPdfPages, type CropRectFrac } from "@/lib/pdf/crop";
 import { downloadBlob, getBaseName, pdfBytes } from "@/lib/utils";
 import { preventScrollDuringTouch, isTouchDevice } from "@/lib/touch-utils";
+import { useTranslation } from "@/lib/i18n";
 
 type DragMode =
   | { kind: "move"; start: { x: number; y: number }; startRect: CropRectFrac }
@@ -88,6 +89,7 @@ function getHandleStyle(handle: ResizeHandle): React.CSSProperties {
 }
 
 export default function CropPDFPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [targetPage, setTargetPage] = useState(0);
@@ -276,7 +278,7 @@ export default function CropPDFPage() {
         filename: `${getBaseName(file.name)}-cropped.pdf`,
       });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Failed to crop PDF.");
+      setError((err as Error)?.message ?? t("crop.error"));
     } finally {
       setProcessing(false);
     }
@@ -305,8 +307,8 @@ export default function CropPDFPage() {
 
   return (
     <ToolLayout
-      title="Crop PDF"
-      description="Select a page, adjust the full-page crop box from any side, then export."
+      title={t("tools.cropPdf.title")}
+      description={t("crop.pageDescription")}
       icon="crop"
       iconClass="bg-teal-50 text-teal-600"
     >
@@ -341,9 +343,9 @@ export default function CropPDFPage() {
               <ToolCard className="p-4 md:p-5">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-700">Crop preview</p>
+                    <p className="text-sm font-semibold text-slate-700">{t("crop.preview")}</p>
                     <TouchHint
-                      text={isTouch ? "Drag corners or edges to resize crop area" : "Drag any side or corner to adjust"}
+                      text={isTouch ? t("crop.hintTouch") : t("crop.hintMouse")}
                       icon="crop"
                       className="mt-2"
                     />
@@ -450,11 +452,11 @@ export default function CropPDFPage() {
                   <div className="flex flex-wrap gap-2">
                     <SecondaryButton onClick={() => setCropForPage(targetPage, null)} disabled={!storedCrop}>
                       <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-                      Reset to full page
+                       {t("crop.resetPage")}
                     </SecondaryButton>
                     <SecondaryButton onClick={applyCurrentToAll} disabled={!storedCrop || pageCount <= 1}>
                       <span className="material-symbols-outlined text-[18px]">content_copy</span>
-                      Apply to all pages
+                       {t("crop.applyAll")}
                     </SecondaryButton>
                     <button
                       type="button"
@@ -463,18 +465,18 @@ export default function CropPDFPage() {
                       className="text-sm text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
-                      Reset all pages
+                       {t("crop.resetAll")}
                     </button>
                   </div>
                   <div className="text-xs text-slate-500">
-                    {hasAnyCrop ? `${adjustedCropCount} page${adjustedCropCount !== 1 ? "s" : ""} adjusted` : "Current page uses the full-page box"}
+                    {hasAnyCrop ? t("crop.adjustedCount", { count: adjustedCropCount }) : t("crop.fullPageBox")}
                   </div>
                 </div>
               </ToolCard>
 
               <ToolCard>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Pages</p>
-                <p className="text-xs text-slate-500 mb-3">Tap a thumbnail first, then adjust that page&apos;s crop box above.</p>
+                <p className="text-sm font-semibold text-slate-700 mb-3">{t("common.pages")}</p>
+                <p className="text-xs text-slate-500 mb-3">{t("crop.thumbHint")}</p>
                 <PDFThumbnails
                   file={file}
                   selectedPages={new Set([targetPage])}
@@ -490,7 +492,7 @@ export default function CropPDFPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <PrimaryButton onClick={handleExport} loading={processing} disabled={!hasAnyCrop} className="w-full sm:w-auto">
                   <span className="material-symbols-outlined text-[18px]">crop</span>
-                  Export Cropped PDF
+                   {t("crop.button")}
                 </PrimaryButton>
               </div>
             </>

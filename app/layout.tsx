@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { I18nProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "LocalPDF Engine - Free Online PDF Tools",
@@ -20,9 +21,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head />
       <body className="flex flex-col min-h-screen">
-        <Header />
-        <div className="flex-1">{children}</div>
-        <Footer />
+        <I18nProvider>
+          <Header />
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </I18nProvider>
       </body>
     </html>
   );

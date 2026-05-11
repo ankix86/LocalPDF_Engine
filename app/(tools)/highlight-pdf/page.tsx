@@ -7,6 +7,7 @@ import PDFThumbnails from "@/components/shared/PDFThumbnail";
 import { PDFDocument, rgb } from "pdf-lib";
 import { renderPageToCanvas } from "@/lib/pdf/core";
 import { downloadBlob, getBaseName } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const COLORS = [
   { name: "Black",    hex: "#000000", r: 0,    g: 0,    b: 0    },
@@ -62,6 +63,7 @@ type DrawState = {
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 export default function HighlightPDFPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [targetPage, setTargetPage] = useState(0);
@@ -305,7 +307,7 @@ export default function HighlightPDFPage() {
         filename: `${getBaseName(file.name)}-draw-highlighted.pdf`,
       });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Failed to apply annotations.");
+      setError((err as Error)?.message ?? t("highlight.error"));
     } finally {
       setProcessing(false);
     }
@@ -339,8 +341,8 @@ export default function HighlightPDFPage() {
 
   return (
     <ToolLayout
-      title="Draw / Highlight PDF"
-      description="Highlight areas or draw freehand strokes on any page, then export the edited PDF."
+      title={t("tools.highlightPdf.title")}
+      description={t("highlight.pageDescription")}
       icon="draw"
       iconClass="bg-yellow-50 text-yellow-600"
     >
@@ -377,28 +379,28 @@ export default function HighlightPDFPage() {
               <ToolCard>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Edit mode</p>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{t("highlight.editMode")}</p>
                     <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 p-1">
                       <button
                         type="button"
                         onClick={() => setMode("highlight")}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${mode === "highlight" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
                       >
-                        Highlight
+                        {t("highlight.modeHighlight")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setMode("draw")}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${mode === "draw" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
                       >
-                        Draw
+                        {t("highlight.modeDraw")}
                       </button>
                     </div>
                   </div>
 
                   <div className="min-w-0 lg:w-80">
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      Marker thickness
+                      {t("highlight.thickness")}
                     </label>
                     <div className="flex items-center gap-3">
                       <input
@@ -422,7 +424,7 @@ export default function HighlightPDFPage() {
                     className="w-full lg:w-auto lg:self-end"
                   >
                     <span className="material-symbols-outlined text-[18px]">undo</span>
-                    Undo last
+                    {t("highlight.undoLast")}
                   </SecondaryButton>
                 </div>
               </ToolCard>
@@ -432,7 +434,7 @@ export default function HighlightPDFPage() {
                 <div className="flex flex-wrap items-center gap-4">
                   <div>
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      {mode === "draw" ? "Pen color" : "Highlight color"}
+                      {mode === "draw" ? t("highlight.penColor") : t("highlight.highlightColor")}
                     </p>
                     <div className="flex items-center gap-2">
                       {COLORS.map((c, i) => (
@@ -472,7 +474,7 @@ export default function HighlightPDFPage() {
                         className="text-xs text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1"
                       >
                         <span className="material-symbols-outlined text-[14px]">delete_sweep</span>
-                        Clear all
+                        {t("common.clearAll")}
                       </button>
                     )}
                   </div>
@@ -483,13 +485,13 @@ export default function HighlightPDFPage() {
               <ToolCard className="p-4 md:p-5">
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">Page preview</p>
+                    <p className="text-sm font-semibold text-slate-700">{t("common.pagePreview")}</p>
                     <p className="text-xs text-slate-500 mt-0.5">
                       {selectedId
-                        ? "Annotation selected - tap elsewhere to deselect"
+                        ? t("highlight.hintSelected")
                         : mode === "draw"
-                          ? "Drag to sketch a smooth stroke · Tap a highlight to select & delete"
-                          : "Click & drag to highlight · Tap a highlight to select & delete"}
+                          ? t("highlight.hintDraw")
+                          : t("highlight.hintHighlight")}
                     </p>
                   </div>
                   <span className="text-xs font-medium text-slate-500 shrink-0">
@@ -613,8 +615,8 @@ export default function HighlightPDFPage() {
 
               {/* Page thumbnails */}
               <ToolCard>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Pages</p>
-                <p className="text-xs text-slate-500 mb-3">Tap a thumbnail to jump to that page and add annotations there.</p>
+                <p className="text-sm font-semibold text-slate-700 mb-3">{t("common.pages")}</p>
+                <p className="text-xs text-slate-500 mb-3">{t("highlight.thumbHint")}</p>
                 <PDFThumbnails
                   file={file}
                   selectedPages={new Set([targetPage])}
@@ -629,7 +631,7 @@ export default function HighlightPDFPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <PrimaryButton onClick={handleExport} loading={processing} disabled={totalHighlights + totalStrokes === 0} className="w-full sm:w-auto">
                   <span className="material-symbols-outlined text-[18px]">draw</span>
-                  Apply {totalHighlights + totalStrokes > 0 ? `${totalHighlights + totalStrokes} Annotation${totalHighlights + totalStrokes !== 1 ? "s" : ""}` : "Annotations"}
+                  {totalHighlights + totalStrokes > 0 ? t("highlight.buttonCount", { count: totalHighlights + totalStrokes }) : t("highlight.button")}
                 </PrimaryButton>
               </div>
             </>

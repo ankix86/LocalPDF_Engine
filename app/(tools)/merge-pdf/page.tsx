@@ -1,48 +1,37 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useState, useRef } from "react";
 import ToolLayout, { ToolCard, PrimaryButton, DownloadSuccess } from "@/components/shared/ToolLayout";
+import FileDropzone from "@/components/shared/FileDropzone";
 import { mergePDFs } from "@/lib/pdf/merge";
-import { downloadBlob, formatBytes, getBaseName } from "@/lib/utils";
+import { downloadBlob } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-
-interface PDFFile {
-  file: File;
-  id: string;
-}
+import { useTranslation } from "@/lib/i18n";
 
 export default function MergePDFPage() {
-  const [files, setFiles] = useState<PDFFile[]>([]);
+  const { t } = useTranslation();
+  const [files, setFiles] = useState<File[]>([]);
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<{ blob: Blob; filename: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
 
-  const onDrop = useCallback((accepted: File[]) => {
+  const addFiles = (newFiles: File[]) => {
+    setFiles((prev) => [...prev, ...newFiles]);
     setResult(null);
     setError(null);
-    setFiles((prev) => [
-      ...prev,
-      ...accepted.map((f) => ({ file: f, id: `${f.name}-${Date.now()}-${Math.random()}` })),
-    ]);
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "application/pdf": [".pdf"] },
-    multiple: true,
-  });
-
-  const removeFile = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const moveFile = (fromIndex: number, toIndex: number) => {
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const moveFile = (from: number, to: number) => {
     setFiles((prev) => {
       const arr = [...prev];
-      const [item] = arr.splice(fromIndex, 1);
-      arr.splice(toIndex, 0, item);
+      const [item] = arr.splice(from, 1);
+      arr.splice(to, 0, item);
       return arr;
     });
   };
@@ -52,132 +41,112 @@ export default function MergePDFPage() {
     setProcessing(true);
     setError(null);
     try {
-      const buffers = await Promise.all(files.map((f) => f.file.arrayBuffer()));
-      const merged = await mergePDFs(buffers);
-      const blob = new Blob([merged as unknown as BlobPart], { type: "application/pdf" });
-      const firstName = getBaseName(files[0].file.name);
-      setResult({ blob, filename: `${firstName}-merged.pdf` });
+      const buffers = await Promise.all(files.map((f) => f.arrayBuffer()));
+      const bytes = await mergePDFs(buffers);
+      const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
+      setResult({ blob, filename: "merged.pdf" });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Merge failed. Ensure all files are valid, non-encrypted PDFs.");
+      setError((err as Error)?.message ?? t("merge.error"));
     } finally {
       setProcessing(false);
     }
   };
 
-  const handleDownload = () => {
-    if (!result) return;
-    downloadBlob(result.blob, result.filename);
-  };
-
-  const reset = () => {
-    setFiles([]);
-    setResult(null);
-    setError(null);
-  };
+  const reset = () => { setFiles([]); setResult(null); setError(null); };
 
   return (
     <ToolLayout
-      title="Merge PDF"
-      description="Combine multiple PDF files into one. Drag to reorder before merging."
+      title={t("tools.mergePdf.title")}
+      description={t("merge.pageDescription")}
       icon="merge"
       iconClass="bg-blue-50 text-blue-600"
     >
       {result ? (
         <ToolCard>
           <DownloadSuccess
-            onDownload={handleDownload}
+            onDownload={() => downloadBlob(result.blob, result.filename)}
             onReset={reset}
             filename={result.filename}
-            sizeBytes={result.blob.size}
           />
         </ToolCard>
       ) : (
         <div className="space-y-4">
-          {/* Drop zone */}
           <ToolCard>
-            <div
-              {...getRootProps()}
-              className={cn(
-                "flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-lg py-10 cursor-pointer transition-all",
-                isDragActive ? "border-teal-500 bg-teal-50" : "border-slate-200 hover:border-teal-400 hover:bg-slate-50"
-              )}
-            >
-              <input {...getInputProps()} />
-              <span className="material-symbols-outlined text-slate-400 text-[40px]">upload_file</span>
-              <div className="text-center">
-                <p className="font-medium text-slate-700">Drop PDFs here</p>
-                <p className="text-sm text-slate-500 mt-0.5">or click to select multiple files</p>
-              </div>
-            </div>
+            <FileDropzone
+              onFiles={addFiles}
+              files={[]}
+              maxFiles={20}
+              label={t("merge.dropHere")}
+              sublabel={t("merge.clickToSelect")}
+            />
           </ToolCard>
 
-          {/* File list */}
           {files.length > 0 && (
             <ToolCard>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-semibold text-slate-700">
-                  {files.length} file{files.length !== 1 ? "s" : ""} - drag to reorder
+                  {t("merge.fileCount", { count: files.length })}
                 </p>
-                <button onClick={reset} className="text-xs text-slate-400 hover:text-slate-700 transition-colors">
-                  Clear all
+                <button
+                  onClick={() => setFiles([])}
+                  className="text-xs text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-[14px]">delete_sweep</span>
+                  {t("common.clearAll")}
                 </button>
               </div>
 
-              <div className="space-y-2">
-                {files.map((f, i) => (
+              <div className="space-y-1.5">
+                {files.map((file, i) => (
                   <div
-                    key={f.id}
+                    key={i}
                     draggable
-                    onDragStart={(e) => e.dataTransfer.setData("index", String(i))}
-                    onDragOver={(e) => { e.preventDefault(); setDragOverId(f.id); }}
-                    onDragLeave={() => setDragOverId(null)}
+                    onDragStart={() => setDragFrom(i)}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(i); }}
+                    onDragLeave={() => setDragOver(null)}
                     onDrop={(e) => {
                       e.preventDefault();
-                      const from = Number(e.dataTransfer.getData("index"));
-                      moveFile(from, i);
-                      setDragOverId(null);
+                      if (dragFrom !== null && dragFrom !== i) moveFile(dragFrom, i);
+                      setDragFrom(null);
+                      setDragOver(null);
                     }}
+                    onDragEnd={() => { setDragFrom(null); setDragOver(null); }}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border transition-all cursor-grab active:cursor-grabbing",
-                      dragOverId === f.id ? "border-teal-400 bg-teal-50" : "border-slate-200 bg-white hover:border-slate-300"
+                      "flex items-center gap-3 px-3 py-2 rounded border text-sm transition-all cursor-grab active:cursor-grabbing",
+                      dragOver === i
+                        ? "border-teal-400 bg-teal-50"
+                        : "border-slate-200 bg-white hover:border-slate-300"
                     )}
                   >
-                    <span className="material-symbols-outlined text-slate-400 text-[20px] shrink-0">drag_indicator</span>
-                    <span className="material-symbols-outlined text-teal-500 text-[20px] shrink-0">picture_as_pdf</span>
-                    <span className="flex-1 text-sm font-medium text-slate-700 truncate">{f.file.name}</span>
-                    <span className="text-xs text-slate-400 shrink-0">{formatBytes(f.file.size)}</span>
+                    <span className="material-symbols-outlined text-slate-400 text-[18px]">drag_indicator</span>
+                    <span className="material-symbols-outlined text-teal-600 text-[18px]">picture_as_pdf</span>
+                    <span className="flex-1 truncate text-slate-700 font-medium">{file.name}</span>
                     <button
-                      onClick={() => removeFile(f.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors shrink-0"
+                      onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                      className="text-slate-400 hover:text-red-600 transition-colors"
                     >
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
                   </div>
                 ))}
               </div>
-
-              {error && (
-                <div className="mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded">
-                  <span className="material-symbols-outlined text-[16px]">error</span>
-                  {error}
-                </div>
-              )}
-
-              <div className="mt-5 flex items-center gap-3">
-                <PrimaryButton
-                  onClick={handleMerge}
-                  disabled={files.length < 2}
-                  loading={processing}
-                >
-                  <span className="material-symbols-outlined text-[18px]">merge</span>
-                  Merge {files.length} PDFs
-                </PrimaryButton>
-                {files.length < 2 && (
-                  <span className="text-xs text-slate-400">Add at least 2 files</span>
-                )}
-              </div>
             </ToolCard>
           )}
+
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded">{error}</p>
+          )}
+
+          <PrimaryButton
+            onClick={handleMerge}
+            loading={processing}
+            disabled={files.length < 2}
+          >
+            <span className="material-symbols-outlined text-[18px]">merge</span>
+            {files.length >= 2
+              ? t("merge.mergeButton", { count: files.length })
+              : t("merge.addAtLeast2")}
+          </PrimaryButton>
         </div>
       )}
     </ToolLayout>

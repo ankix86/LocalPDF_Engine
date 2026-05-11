@@ -6,8 +6,10 @@ import FileDropzone from "@/components/shared/FileDropzone";
 import { watermarkPDF } from "@/lib/pdf/watermark";
 import { downloadBlob, getBaseName } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 export default function WatermarkPDFPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("CONFIDENTIAL");
   const [opacity, setOpacity] = useState(30);
@@ -43,7 +45,7 @@ export default function WatermarkPDFPage() {
       const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
       setResult({ blob, filename: `${getBaseName(file.name)}-watermarked.pdf` });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Watermark failed.");
+      setError((err as Error)?.message ?? t("watermark.error"));
     } finally {
       setProcessing(false);
     }
@@ -53,8 +55,8 @@ export default function WatermarkPDFPage() {
 
   return (
     <ToolLayout
-      title="Watermark PDF"
-      description="Stamp custom text across all pages of your PDF."
+      title={t("tools.watermarkPdf.title")}
+      description={t("watermark.pageDescription")}
       icon="water"
       iconClass="bg-teal-50 text-teal-600"
     >
@@ -79,7 +81,7 @@ export default function WatermarkPDFPage() {
             <ToolCard>
               <div className="space-y-5">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-1.5">Watermark text</label>
+                  <label className="text-sm font-semibold text-slate-700 block mb-1.5">{t("watermark.text")}</label>
                   <input
                     type="text"
                     value={text}
@@ -92,7 +94,7 @@ export default function WatermarkPDFPage() {
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1.5">
-                      Opacity: {opacity}%
+                      {t("watermark.opacity", { value: opacity })}
                     </label>
                     <input
                       type="range" min={5} max={100} value={opacity}
@@ -102,7 +104,7 @@ export default function WatermarkPDFPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1.5">
-                      Font size: {fontSize}pt
+                      {t("watermark.fontSize", { value: fontSize })}
                     </label>
                     <input
                       type="range" min={20} max={120} value={fontSize}
@@ -112,7 +114,7 @@ export default function WatermarkPDFPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1.5">
-                      Angle: {angle}°
+                      {t("watermark.angle", { value: angle })}
                     </label>
                     <input
                       type="range" min={0} max={360} value={angle}
@@ -121,7 +123,7 @@ export default function WatermarkPDFPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-1.5">Color</label>
+                    <label className="text-sm font-medium text-slate-700 block mb-1.5">{t("watermark.color")}</label>
                     <div className="flex items-center gap-3">
                       <input
                         type="color" value={color}
@@ -134,7 +136,7 @@ export default function WatermarkPDFPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-2">Position</label>
+                  <label className="text-sm font-semibold text-slate-700 block mb-2">{t("watermark.position")}</label>
                   <div className="flex gap-3">
                     {(["center", "tile"] as const).map((p) => (
                       <button
@@ -147,7 +149,7 @@ export default function WatermarkPDFPage() {
                             : "border-slate-200 text-slate-600 hover:border-slate-400"
                         )}
                       >
-                        {p === "center" ? "Center" : "Tiled"}
+                        {p === "center" ? t("watermark.center") : t("watermark.tiled")}
                       </button>
                     ))}
                   </div>
@@ -157,7 +159,7 @@ export default function WatermarkPDFPage() {
 
                 <PrimaryButton onClick={handleWatermark} loading={processing} disabled={!text.trim()}>
                   <span className="material-symbols-outlined text-[18px]">water</span>
-                  Apply Watermark
+                  {t("watermark.button")}
                 </PrimaryButton>
               </div>
             </ToolCard>

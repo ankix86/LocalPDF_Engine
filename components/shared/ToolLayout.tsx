@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface ToolLayoutProps {
   title: string;
@@ -18,6 +19,8 @@ export default function ToolLayout({
   iconClass = "bg-teal-50 text-teal-600",
   children,
 }: ToolLayoutProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Tool header */}
@@ -28,7 +31,7 @@ export default function ToolLayout({
             className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 transition-colors mb-6"
           >
             <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            All Tools
+            {t("common.allTools")}
           </Link>
 
           <div className="flex items-center gap-4">
@@ -143,6 +146,8 @@ export function DownloadSuccess({
   filename?: string;
   sizeBytes?: number;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col items-center gap-6 py-10 text-center">
       <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center">
@@ -151,7 +156,7 @@ export function DownloadSuccess({
         </span>
       </div>
       <div>
-        <p className="font-semibold text-slate-800 text-lg">Done!</p>
+        <p className="font-semibold text-slate-800 text-lg">{t("common.done")}</p>
         {filename && (
           <p className="text-sm text-slate-500 mt-1">
             {filename}
@@ -165,14 +170,14 @@ export function DownloadSuccess({
           className="inline-flex items-center gap-2 bg-teal-600 text-white text-sm font-semibold px-6 py-2.5 rounded hover:bg-teal-700 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">download</span>
-          Download
+          {t("common.download")}
         </button>
         <button
           onClick={onReset}
           className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium px-5 py-2.5 rounded hover:bg-slate-50 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">refresh</span>
-          Start Over
+          {t("common.startOver")}
         </button>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { PDFDocument, degrees } from "pdf-lib";
 import { renderPageToCanvas } from "@/lib/pdf/core";
 import { downloadBlob, getBaseName } from "@/lib/utils";
 import { preventScrollDuringTouch, isTouchDevice } from "@/lib/touch-utils";
+import { useTranslation } from "@/lib/i18n";
 
 type StampPlacement = {
   id: string;
@@ -42,6 +43,7 @@ const HANDLE_SIZE = 44; // 44x44px minimum touch target
 const ROTATE_HANDLE_SIZE = 44;
 
 export default function StampPDFPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [targetPage, setTargetPage] = useState(0);
@@ -223,7 +225,7 @@ export default function StampPDFPage() {
       const outBytes = await doc.save();
       setResult({ blob: new Blob([outBytes as unknown as BlobPart], { type: "application/pdf" }), filename: `${getBaseName(file.name)}-stamped.pdf` });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Failed to stamp.");
+      setError((err as Error)?.message ?? t("stamp.error"));
     } finally { setProcessing(false); }
   };
 
@@ -239,8 +241,8 @@ export default function StampPDFPage() {
 
   return (
     <ToolLayout
-      title="Stamp PDF"
-      description="Upload an image stamp, place it on any page, then drag to move, resize corners, or rotate."
+      title={t("tools.stampPdf.title")}
+      description={t("stamp.pageDescription")}
       icon="approval"
       iconClass="bg-teal-50 text-teal-600"
     >
@@ -254,8 +256,8 @@ export default function StampPDFPage() {
             <FileDropzone
               onFiles={(files) => { setFile(files[0]); setResult(null); setTargetPage(0); setPlacements([]); setSelectedId(null); setPreviewError(null); setHoverPt(null); }}
               files={file ? [file] : []}
-              label="Drop your PDF here"
-              sublabel="or click to select a PDF"
+              label={t("stamp.dropPdf")}
+              sublabel={t("stamp.dropPdfSub")}
             />
           </ToolCard>
 
@@ -263,8 +265,8 @@ export default function StampPDFPage() {
             <FileDropzone
               onFiles={(files) => { setStampFile(files[0]); setResult(null); setPlacements([]); setSelectedId(null); }}
               files={stampFile ? [stampFile] : []}
-              label="Drop your stamp image here"
-              sublabel="PNG, JPG, JPEG, GIF, or WebP"
+              label={t("stamp.dropStamp")}
+              sublabel={t("stamp.dropStampSub")}
               accept={{ "image/png": [".png"], "image/jpeg": [".jpg", ".jpeg"], "image/gif": [".gif"], "image/webp": [".webp"] }}
             />
             {stampFile && (
@@ -274,7 +276,7 @@ export default function StampPDFPage() {
                 className="mt-3 text-xs text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1"
               >
                 <span className="material-symbols-outlined text-[14px]">delete</span>
-                Clear stamp image
+                {t("stamp.clearStamp")}
               </button>
             )}
           </ToolCard>
@@ -284,11 +286,11 @@ export default function StampPDFPage() {
               <ToolCard className="p-4 md:p-5">
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">Page preview</p>
+                    <p className="text-sm font-semibold text-slate-700">{t("common.pagePreview")}</p>
                     <TouchHint
                       text={stampUrl
-                        ? (isTouch ? "Tap to place · Drag to move · Pinch corners to resize" : "Click to place · Drag to move · Resize corners")
-                        : "Upload a stamp image to start placing"}
+                        ? (isTouch ? t("stamp.hintTouch") : t("stamp.hintMouse"))
+                        : t("stamp.hintUpload")}
                       icon="approval"
                       className="mt-2"
                     />
@@ -427,7 +429,7 @@ export default function StampPDFPage() {
 
                     {!stampUrl && (
                       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-teal-300 bg-white/70 px-4 py-2 text-xs font-medium tracking-wide text-teal-700 pointer-events-none whitespace-nowrap">
-                        Upload a stamp image first
+                        {t("stamp.uploadFirst")}
                       </div>
                     )}
 
@@ -461,8 +463,8 @@ export default function StampPDFPage() {
               </ToolCard>
 
               <ToolCard>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Pages</p>
-                <p className="text-xs text-slate-500 mb-3">Click a thumbnail to jump to that page and keep stamping.</p>
+                <p className="text-sm font-semibold text-slate-700 mb-3">{t("common.pages")}</p>
+                <p className="text-xs text-slate-500 mb-3">{t("stamp.thumbHint")}</p>
                 <PDFThumbnails
                   file={file}
                   selectedPages={new Set([targetPage])}
@@ -477,7 +479,7 @@ export default function StampPDFPage() {
 
               <PrimaryButton onClick={handleEmbed} loading={processing} disabled={!stampUrl || placements.length === 0}>
                 <span className="material-symbols-outlined text-[18px]">approval</span>
-                Embed Stamps
+                {t("stamp.button")}
               </PrimaryButton>
             </>
           )}

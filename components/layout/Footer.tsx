@@ -1,12 +1,18 @@
+"use client";
+
+import { useTranslation } from "@/lib/i18n";
+
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="border-t border-slate-200 bg-white mt-auto">
       <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <p className="text-sm text-slate-500">
-          © {new Date().getFullYear()} LocalPDF Engine - 100% client-side, open source.
+          {t("footer.copyright", { year: new Date().getFullYear() })}
         </p>
         <p className="text-sm text-slate-400">
-          Powered by{" "}
+          {t("footer.poweredBy")}{" "}
           <a
             href="https://pdf-lib.js.org"
             target="_blank"

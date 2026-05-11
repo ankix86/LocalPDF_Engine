@@ -7,6 +7,7 @@ import PDFThumbnails from "@/components/shared/PDFThumbnail";
 import { PDFDocument, degrees } from "pdf-lib";
 import { renderPageToCanvas } from "@/lib/pdf/core";
 import { downloadBlob, getBaseName } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 type SigPlacement = {
   id: string;
@@ -35,6 +36,7 @@ type HandleState = {
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 export default function SignPDFPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [targetPage, setTargetPage] = useState(0);
@@ -245,7 +247,7 @@ export default function SignPDFPage() {
       const outBytes = await doc.save();
       setResult({ blob: new Blob([outBytes as unknown as BlobPart], { type: "application/pdf" }), filename: `${getBaseName(file.name)}-signed.pdf` });
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Failed to embed signature.");
+      setError((err as Error)?.message ?? t("sign.error"));
     } finally { setProcessing(false); }
   };
 
@@ -262,8 +264,8 @@ export default function SignPDFPage() {
 
   return (
     <ToolLayout
-      title="Sign PDF"
-      description="Draw your signature and embed it on any page."
+      title={t("tools.signPdf.title")}
+      description={t("sign.pageDescription")}
       icon="draw"
       iconClass="bg-teal-50 text-teal-600"
     >
@@ -286,11 +288,11 @@ export default function SignPDFPage() {
               <ToolCard className="p-4 md:p-5">
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">Page preview</p>
+                    <p className="text-sm font-semibold text-slate-700">{t("common.pagePreview")}</p>
                     <p className="text-xs text-slate-500 mt-1">
                       {sigPreviewUrl
-                        ? "Tap to place · Drag to move · Drag corners to resize · Drag ↺ to rotate"
-                        : "Draw your signature below, then tap here to place it"}
+                        ? t("sign.hintWithSig")
+                        : t("sign.hintNoSig")}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -413,7 +415,7 @@ export default function SignPDFPage() {
 
                     {!sigPreviewUrl && (
                       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-teal-300 bg-white/70 px-4 py-2 text-xs font-medium tracking-wide text-teal-700 pointer-events-none whitespace-nowrap">
-                        Draw signature below, then click to place it here
+                        {t("sign.drawPrompt")}
                       </div>
                     )}
 
@@ -447,10 +449,10 @@ export default function SignPDFPage() {
               {/* Signature pad */}
               <ToolCard>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-slate-700">Draw your signature</p>
+                  <p className="text-sm font-semibold text-slate-700">{t("sign.drawTitle")}</p>
                   <button onClick={clearSignature} className="text-xs text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">delete</span>
-                    Clear
+                    {t("common.clear")}
                   </button>
                 </div>
                 <canvas
@@ -467,15 +469,15 @@ export default function SignPDFPage() {
                   onTouchEnd={endDraw}
                 />
                 {!hasSig && (
-                  <p className="text-center text-sm text-slate-400 mt-2">Sign in the box above with your mouse or finger</p>
+                  <p className="text-center text-sm text-slate-400 mt-2">{t("sign.signHint")}</p>
                 )}
               </ToolCard>
 
               {/* Page thumbnails */}
               <ToolCard>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Pages</p>
+                <p className="text-sm font-semibold text-slate-700 mb-3">{t("common.pages")}</p>
                 <p className="text-xs text-slate-500 mb-3">
-                  Click a thumbnail to jump to that page, then click the preview to place your signature.
+                  {t("sign.thumbHint")}
                 </p>
                 <PDFThumbnails
                   file={file}
@@ -490,7 +492,7 @@ export default function SignPDFPage() {
 
               <PrimaryButton onClick={handleEmbed} loading={processing} disabled={!hasSig}>
                 <span className="material-symbols-outlined text-[18px]">draw</span>
-                Embed Signature
+                {t("sign.button")}
               </PrimaryButton>
             </>
           )}

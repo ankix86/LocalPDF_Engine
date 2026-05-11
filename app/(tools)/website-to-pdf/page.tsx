@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import ToolLayout, { PrimaryButton, SecondaryButton, ToolCard } from "@/components/shared/ToolLayout";
 import FileDropzone from "@/components/shared/FileDropzone";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 type SourceMode = "url" | "html";
 type PageSize = "Letter" | "A4" | "Legal";
@@ -130,6 +131,7 @@ function buildPrintableHtml(rawHtml: string, css: string) {
 }
 
 export default function WebsiteToPDFPage() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<SourceMode>("url");
   const [url, setUrl] = useState("");
   const [html, setHtml] = useState("<h1>Paste or upload HTML to preview it here</h1><p>Use the controls above, then save as PDF from the print dialog.</p>");
@@ -158,7 +160,7 @@ export default function WebsiteToPDFPage() {
       setHtml(await file.text());
       setMode("html");
     } catch (err: unknown) {
-      setError((err as Error)?.message ?? "Failed to read HTML file.");
+      setError((err as Error)?.message ?? t("webToPdf.readFileError"));
     }
   };
 
@@ -167,7 +169,7 @@ export default function WebsiteToPDFPage() {
     setMessage(null);
     const win = window.open("", "_blank", "noopener,noreferrer");
     if (!win) {
-      setError("Popup blocked. Allow popups for this site, then try again.");
+      setError(t("webToPdf.popupBlocked"));
       return;
     }
     win.document.open();
@@ -181,17 +183,17 @@ export default function WebsiteToPDFPage() {
     setError(null);
     setMessage(null);
     if (!normalizedUrl) {
-      setError("Enter a website URL first.");
+      setError(t("webToPdf.enterUrl"));
       return;
     }
 
     try {
       iframeRef.current?.contentWindow?.focus();
       iframeRef.current?.contentWindow?.print();
-      setMessage("If the print dialog did not open, the website is blocking framed printing. Use Open in new tab and print from the browser.");
+      setMessage(t("webToPdf.printBlocked"));
     } catch {
       window.open(normalizedUrl, "_blank", "noopener,noreferrer");
-      setMessage("The website blocked framed printing. It was opened in a new tab so you can press Ctrl/Cmd + P and choose Save as PDF.");
+      setMessage(t("webToPdf.openedInTab"));
     }
   };
 
@@ -205,8 +207,8 @@ export default function WebsiteToPDFPage() {
 
   return (
     <ToolLayout
-      title="Website / HTML to PDF"
-      description="Convert webpages or local HTML into a PDF using the browser's high-fidelity print engine."
+      title={t("tools.websiteToPdf.title")}
+      description={t("webToPdf.pageDescription")}
       icon="language"
       iconClass="bg-orange-50 text-orange-600"
     >
@@ -228,7 +230,7 @@ export default function WebsiteToPDFPage() {
                     mode === item ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
                   )}
                 >
-                  {item === "url" ? "Website URL" : "HTML file / paste"}
+                  {item === "url" ? t("webToPdf.modeUrl") : t("webToPdf.modeHtml")}
                 </button>
               ))}
             </div>
@@ -236,7 +238,7 @@ export default function WebsiteToPDFPage() {
             {mode === "url" ? (
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-slate-700" htmlFor="website-url">
-                  Website link
+                  {t("webToPdf.websiteLink")}
                 </label>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <input
@@ -249,18 +251,18 @@ export default function WebsiteToPDFPage() {
                   />
                   <SecondaryButton onClick={openUrl} disabled={!normalizedUrl}>
                     <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                    Open
+                    {t("webToPdf.open")}
                   </SecondaryButton>
                 </div>
                 <p className="text-xs leading-relaxed text-slate-500">
-                  Most public websites print best from their own page. If the preview is blocked, open it in a new tab, press Ctrl/Cmd + P, choose Save as PDF, and use the settings below in the print dialog.
+                  {t("webToPdf.urlHint")}
                 </p>
               </div>
             ) : (
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2" htmlFor="html-input">
-                    Paste HTML
+                    {t("webToPdf.pasteHtml")}
                   </label>
                   <textarea
                     id="html-input"
@@ -272,7 +274,7 @@ export default function WebsiteToPDFPage() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-700 mb-2">Upload local HTML</p>
+                  <p className="text-sm font-semibold text-slate-700 mb-2">{t("webToPdf.uploadHtml")}</p>
                   <FileDropzone
                     onFiles={handleHtmlFile}
                     files={[]}
@@ -280,8 +282,8 @@ export default function WebsiteToPDFPage() {
                       "text/html": [".html", ".htm"],
                       "application/xhtml+xml": [".xhtml"],
                     }}
-                    label="Drop HTML here"
-                    sublabel="or tap to choose a local .html file"
+                    label={t("webToPdf.dropHtml")}
+                    sublabel={t("webToPdf.dropHtmlSub")}
                     className="min-h-[180px] py-8"
                   />
                 </div>
@@ -294,7 +296,7 @@ export default function WebsiteToPDFPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                Page size
+                {t("webToPdf.pageSize")}
               </label>
               <select
                 value={pageSize}
@@ -309,7 +311,7 @@ export default function WebsiteToPDFPage() {
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                Orientation
+                {t("webToPdf.orientation")}
               </label>
               <div className="grid grid-cols-2 rounded border border-slate-200 bg-slate-100 p-1">
                 {(["portrait", "landscape"] as const).map((item) => (
@@ -330,7 +332,7 @@ export default function WebsiteToPDFPage() {
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                Margins
+                {t("webToPdf.margins")}
               </label>
               <select
                 value={margin}
@@ -346,7 +348,7 @@ export default function WebsiteToPDFPage() {
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                Scale: {scale}%
+                {t("webToPdf.scale", { value: scale })}
               </label>
               <input
                 type="range"
@@ -383,16 +385,16 @@ export default function WebsiteToPDFPage() {
         <ToolCard className="p-4 md:p-5">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-700">Preview</p>
+              <p className="text-sm font-semibold text-slate-700">{t("webToPdf.preview")}</p>
               <p className="text-xs text-slate-500 mt-0.5">
                 {mode === "url"
-                  ? "Some websites block embedding. The Open button is the fallback for those pages."
-                  : "This preview includes the print CSS, scale, fit mode, margins, and page size."}
+                  ? t("webToPdf.previewHintUrl")
+                  : t("webToPdf.previewHintHtml")}
               </p>
             </div>
             <PrimaryButton onClick={mode === "url" ? printUrl : printHtml} disabled={mode === "url" && !normalizedUrl}>
               <span className="material-symbols-outlined text-[18px]">print</span>
-              Print / Save PDF
+              {t("webToPdf.printButton")}
             </PrimaryButton>
           </div>
 
@@ -409,7 +411,7 @@ export default function WebsiteToPDFPage() {
                 />
               ) : (
                 <div className="flex min-h-[360px] items-center justify-center p-6 text-center text-sm text-slate-500">
-                  Enter a website URL to load the preview.
+                  {t("webToPdf.enterUrlPreview")}
                 </div>
               )
             ) : (

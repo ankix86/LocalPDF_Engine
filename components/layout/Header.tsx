@@ -1,8 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
+import { useTranslation, SUPPORTED_LOCALES } from "@/lib/i18n";
 
 export default function Header() {
+  const { t, locale, setLocale } = useTranslation();
+  const [langOpen, setLangOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const currentLocale = SUPPORTED_LOCALES.find((l) => l.id === locale) ?? SUPPORTED_LOCALES[0];
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
@@ -11,22 +30,22 @@ export default function Header() {
             picture_as_pdf
           </span>
           <span className="font-semibold text-lg text-slate-900 tracking-tight">
-            LocalPDF Engine
+            {t("header.appName")}
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="flex items-center gap-1">
           <Link
             href="/"
-            className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors"
+            className="hidden md:inline-flex text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors"
           >
-            All Tools
+            {t("header.allTools")}
           </Link>
           <a
             href="https://github.com/ankix86/LocalPDF_Engine"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors"
+            className="hidden md:inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -35,8 +54,46 @@ export default function Header() {
                 clipRule="evenodd"
               />
             </svg>
-            GitHub
+            {t("header.github")}
           </a>
+
+          {/* Language Switcher */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors"
+              aria-label={t("header.language")}
+            >
+              <span className="material-symbols-outlined text-[18px]">language</span>
+              <span className="hidden sm:inline">{currentLocale.id.toUpperCase()}</span>
+              <span className="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
+            </button>
+
+            {langOpen && (
+              <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg border border-slate-200 shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                {SUPPORTED_LOCALES.map((loc) => (
+                  <button
+                    key={loc.id}
+                    onClick={() => {
+                      setLocale(loc.id);
+                      setLangOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                      locale === loc.id
+                        ? "bg-teal-50 text-teal-700 font-semibold"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className="text-base">{loc.flag}</span>
+                    <span>{loc.label}</span>
+                    {locale === loc.id && (
+                      <span className="material-symbols-outlined text-teal-600 text-[16px] ml-auto">check</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
       </div>
     </header>
