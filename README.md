@@ -47,10 +47,6 @@
 
 ### Desktop View
 ![Desktop Interface](./assets/mockup_images/desktopview.png)
-
-### Mobile View
-![Mobile Interface](./assets/mockup_images/phoneview.png)
-
 ---
 
 ## 🔒 Privacy & Security Architecture
