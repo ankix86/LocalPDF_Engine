@@ -11,6 +11,12 @@ dist/
 coverage/
 .nyc_output/
 
+# Electron / Windows desktop builds (electron-builder)
+release/
+*.exe
+*.blockmap
+win-unpacked/
+
 # Environment
 .env
 .env.*

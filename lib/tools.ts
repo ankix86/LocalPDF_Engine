@@ -141,6 +141,15 @@ export const TOOLS: Tool[] = [
     color: "bg-teal-50 text-teal-600",
   },
   {
+    id: "add-padding-pdf",
+    titleKey: "tools.addPaddingPdf.title",
+    descriptionKey: "tools.addPaddingPdf.description",
+    icon: "border_outer",
+    href: "/add-padding-pdf",
+    category: "edit",
+    color: "bg-indigo-50 text-indigo-600",
+  },
+  {
     id: "ocr-pdf",
     titleKey: "tools.ocrPdf.title",
     descriptionKey: "tools.ocrPdf.description",

@@ -130,6 +130,14 @@ npm run build
 npm start
 ```
 
+### Build a Desktop Executable
+
+```bash
+npm run build:desktop
+```
+
+This creates a Windows portable executable in the `release/` folder, similar to a desktop app shell.
+
 ---
 
 ## 🏗️ Project Structure
